@@ -1,0 +1,5 @@
+.env
+config/
+data/
+temp_folder/
+__pycache__/
