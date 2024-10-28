@@ -78,7 +78,6 @@ def upload_result_to_firebase(project_name: str, cv_id: int, jd_id: int, score: 
         'score': score,
         'total_keyword': total_keyword
     }
-    print("Project data", project_data)
     firestore_db.collection('Project_database').document(project_id).set(project_data)
 
     # Save metadata to Realtime Database

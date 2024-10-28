@@ -51,7 +51,6 @@ def extract_matching_keywords(matching_result: str):
 
     # Convert the lines into a dictionary
     result = {line.split(' - ')[0].strip('- ').strip(): line.split(' - ')[1].strip() for line in filtered_lines.splitlines()}
-    print("Result datatype: ",type(result))
     last_line = matching_result.splitlines()[-1]  # Get the last line
     final_point = last_line.split('=')[-1].strip()  # Split by '=' and strip whitespace
 

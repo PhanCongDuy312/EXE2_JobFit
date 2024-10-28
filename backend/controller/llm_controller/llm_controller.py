@@ -17,7 +17,6 @@ load_dotenv()
 
 
 google_api_key = os.getenv('GOOGLE_API_KEY')
-print(google_api_key)
 chat_model = ChatGoogleGenerativeAI(google_api_key=google_api_key, temperature=0, model="gemini-pro", request_timeout=120)
 
 
@@ -91,8 +90,6 @@ def format_final_prompt(cv_datas: str, jd_datas:str):
 
 def clean_algorithm_result(data: str):
     data = str(data)
-    print(data)
-    print(type(data))
     dict_match = re.search(r'```(.*?)```', data, re.DOTALL).group(1).strip()
     matching_keywords = json.loads(dict_match)
     matching_keywords_cleaned = {key: (value if value is not None else "None") for key, value in matching_keywords.items()}

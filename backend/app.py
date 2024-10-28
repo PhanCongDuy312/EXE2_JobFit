@@ -27,27 +27,6 @@ load_dotenv()
 
 app = FastAPI()
 
-# # Get values from environment variables
-# firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH')
-# firebase_database_url = os.getenv('FIREBASE_DATABASE_URL')
-# firebase_storage_bucket = os.getenv('FIREBASE_STORAGE_BUCKET')
-# # google_api_key = os.getenv('GOOGLE_API_KEY')
-
-
-# # Initialize Firebase Admin SDK with service account credentials
-# cred = credentials.Certificate(firebase_credentials_path)
-# firebase_admin.initialize_app(cred, {
-#     'databaseURL': firebase_database_url,  # Realtime Database URL
-#     'storageBucket': firebase_storage_bucket  # Storage Bucket
-# })
-
-# # Get references for Firestore and Realtime Database
-# firestore_db = firestore.client()
-# realtime_db_ref = db.reference()
-
-# Set Google API Key and create ChatGoogleGenerativeAI instance
-# chat_model = ChatGoogleGenerativeAI(google_api_key=google_api_key, temperature=0, model="gemini-pro", request_timeout=120)
-
 
 # Route to upload CV
 @app.post("/upload/cv/")
@@ -159,56 +138,6 @@ async def process_jd(jd_id: str = Body(...)):
 
     # Return the JD result
     return jd_result
-
-# @app.post("/compare_cv_jd")
-# async def compare_cv_jd(project_name: str = Body(...), cv_id: str = Body(...), jd_id: str = Body(...)):
-#     """Compare CV and JD and count the number of similarity keywords between them."""
-    
-    
-#     # Process the CV
-#     cv_response = await process_cv(cv_id)
-#     cv_summary = cv_response["summary"]
-
-#     # Process the JD
-#     jd_response = await process_jd(jd_id)
-#     jd_summary = jd_response["summary"]
-
-
-#     print("################# CV ################# ")
-#     cv_summary = clean_ans(cv_summary)
-#     print(cv_summary)
-#     cv_keyword_dict = extract_keywords_cv(cv_summary)
-#     cv_other_infor = extract_other_infor(cv_summary)
-#     print(cv_keyword_dict)
-#     print("################# JD ################# ")
-#     jd_summary = clean_ans(jd_summary)
-#     print(jd_summary)
-#     jd_keyword_dict = extract_keywords_jd(jd_summary)
-#     print(jd_keyword_dict)
-#     keyword_dict, point = algorithm_matching(cv_other_infor, cv_keyword_dict, jd_keyword_dict)
-    
-#     # project_id = str(uuid.uuid4())
-    
-#     # project_data = {
-#     #     'file_name': project_name,
-#     #     'project_id': project_id,
-#     #     'cv_id': cv_id,
-#     #     'jd_id': jd_id,
-#     #     'matching_score': point
-#     # }
-#     # firestore_db.collection('Result_database').document(project_id).set(project_data)
-#     print(f'Keyword_dict type: {type(keyword_dict)}')
-    # project_data = upload_result_to_firebase(project_name=project_name, cv_id=cv_id, jd_id=jd_id, score=point, matching_keyword_dict=keyword_dict)
-    
-#     # return {
-#     #     "cv_keywords": cv_keyword_dict,
-#     #     "jd_keywords": jd_keyword_dict,
-#     #     # "similarity_count": similarity_count,
-#     #     "similarity_keywords": keyword_dict,
-#     #     "final_result": point
-#     # }
-#     return project_data
-
 
 @app.post("/compare_cv_jd")
 async def compare_cv_jd(project_name: str = Body(...), cv_id: str = Body(...), jd_id: str = Body(...)):
