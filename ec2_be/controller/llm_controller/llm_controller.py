@@ -17,6 +17,7 @@ load_dotenv()
 
 
 google_api_key = os.getenv('GOOGLE_API_KEY')
+print(google_api_key)
 chat_model = ChatGoogleGenerativeAI(google_api_key=google_api_key, temperature=0, model="gemini-pro", request_timeout=120)
 
 
@@ -71,7 +72,11 @@ async def format_cv_prompt(cv_data:str):
 
 def summary_algorithm(cv_data: str, jd_data: str):
     formated_prompt =  format_final_prompt(cv_data, jd_data)
+
     response = chat_model.invoke([{"role": "user", "content": str(formated_prompt)}])  # Use the invoke method
+
+    
+
     return response.content  # Access the content directly from the response
     
 def format_final_prompt(cv_datas: str, jd_datas:str):
@@ -90,20 +95,33 @@ def format_final_prompt(cv_datas: str, jd_datas:str):
 
 def clean_algorithm_result(data: str):
     data = str(data)
-    dict_match = re.search(r'```(.*?)```', data, re.DOTALL).group(1).strip()
-    matching_keywords = json.loads(dict_match)
-    matching_keywords_cleaned = {key: (value if value is not None else "None") for key, value in matching_keywords.items()}
+    print("DATA before clean: ",data)
+    # cleaned_text = re.sub(r'[^a-zA-Z0-9\s]', '', data)
+    # print("DATA after clean: ",cleaned_text)
+    
+    matching_keywords_cleaned = {}  # Initialize the dictionary outside the try-except
 
+    try:
+        dict_match = re.search(r'```(.*?)```', data, re.DOTALL).group(1).strip()
+        matching_keywords = json.loads(dict_match)
+        matching_keywords_cleaned = {key: (value if value is not None else "None") for key, value in matching_keywords.items()}
+    except:
+        matching_keywords = {}
+        for line in data.splitlines():
+            if "- " in line:  # Look for lines with a match
+                key_value = line.split("- ")[1].split(": ")
+                keyword = key_value[0].strip()
+                match = key_value[1].strip()
+                matching_keywords_cleaned[keyword] = match
+
+    
+    # matching_keywords_cleaned = {"No matching keywords": "None"} if matching_keywords_cleaned is None else matching_keywords_cleaned
+                
     # Extract the matching score
     matching_score = int(re.search(r"\*\*Matching Score\*\*: (\d+)", data).group(1))
 
-    # Extract the total keywords
-    total_keywords_match = re.search(r"\*\*Total keywords\*\*:\s*(\d+\s*/\s*\d+)", data)
-    if total_keywords_match:
-        total_keywords = total_keywords_match.group(1).replace(" ", "")
-    else:
-        total_keywords = "none"
+
             
-    return matching_keywords_cleaned, matching_score, total_keywords
+    return matching_keywords_cleaned, matching_score
 
 

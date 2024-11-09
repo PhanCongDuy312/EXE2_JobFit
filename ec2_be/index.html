@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Login Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <button type="submit">Login</button>
+        </form>
+        <button id="getCvButton" style="margin-top: 10px; display: none;">Get CV</button>
+        <div class="response" id="response"></div>
+    </div>
+
+    <script>
+        const apiBaseUrl = "http://127.0.0.1:8000"; // Replace with your FastAPI URL
+
+        const loginForm = document.getElementById("loginForm");
+        const getCvButton = document.getElementById("getCvButton");
+        const responseDiv = document.getElementById("response");
+
+        let accessToken = null;
+
+        // Handle Login Form Submission
+        loginForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        username,
+                        password,
+                    }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    accessToken = data.access_token;
+                    responseDiv.textContent = "Login successful!";
+                    getCvButton.style.display = "block"; // Show the Get CV button
+                } else {
+                    const errorData = await response.json();
+                    responseDiv.textContent = `Error: ${errorData.detail}`;
+                    getCvButton.style.display = "none"; // Hide the Get CV button
+                }
+            } catch (error) {
+                responseDiv.textContent = `Error: ${error.message}`;
+            }
+        });
+
+        // Handle Get CV Button Click
+        getCvButton.addEventListener("click", async () => {
+            if (!accessToken) {
+                responseDiv.textContent = "You must log in first!";
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/get/jd`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    responseDiv.textContent = `CV Data: ${JSON.stringify(data)}`;
+                } else {
+                    const errorData = await response.json();
+                    responseDiv.textContent = `Error: ${errorData.detail}`;
+                }
+            } catch (error) {
+                responseDiv.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

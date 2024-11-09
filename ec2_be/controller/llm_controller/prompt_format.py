@@ -64,8 +64,7 @@ You must provide the reason clearly, concisely, and easy to understand.
 You must respond promptly, accurately, and professionally.
 '''
 
-instruce = 'Extract keywords and the responding score of each criteria name. This field can be empty. This field is a dictionary contains a string as key a number as value, not any other types."'
-
+instruce = 'Extract keywords and the responding score of each criteria name. This field can be empty. This field is a dictionary contains a string as key, a number as value, not any other types.'
 
 
 
