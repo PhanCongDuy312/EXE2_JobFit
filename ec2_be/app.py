@@ -55,34 +55,34 @@ app.add_middleware(
 
 
 # JWT configuration
-JWT_SECRET = '123456'
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_MINUTES = 30
+# JWT_SECRET = '123456'
+# JWT_ALGORITHM = "HS256"
+# JWT_EXPIRATION_MINUTES = 30
 
-# OAuth2 configuration
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+# # OAuth2 configuration
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# Helper functions
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    """Generate a JWT token."""
-    to_encode = data.copy()
-    expire = datetime.now() + (expires_delta or timedelta(minutes=JWT_EXPIRATION_MINUTES))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+# # Helper functions
+# def create_access_token(data: dict, expires_delta: timedelta = None):
+#     """Generate a JWT token."""
+#     to_encode = data.copy()
+#     expire = datetime.now() + (expires_delta or timedelta(minutes=JWT_EXPIRATION_MINUTES))
+#     to_encode.update({"exp": expire})
+#     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def validate_token(token: str = Depends(oauth2_scheme)) -> str:
-    """Validate JWT token and return the username."""
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        username = payload.get("sub")
-        if not username:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        return username
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+# def validate_token(token: str = Depends(oauth2_scheme)) -> str:
+#     """Validate JWT token and return the username."""
+#     try:
+#         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+#         username = payload.get("sub")
+#         if not username:
+#             raise HTTPException(status_code=401, detail="Invalid token")
+#         return username
+#     except jwt.ExpiredSignatureError:
+#         raise HTTPException(status_code=401, detail="Token expired")
+#     except jwt.InvalidTokenError:
+#         raise HTTPException(status_code=401, detail="Invalid token")
 
 
 # Models
@@ -92,36 +92,36 @@ class RegisterRequest(BaseModel):
 
 
 
-# Authentication endpoints
-@app.post("/login", tags=["Authentication"])
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """
-    User login with OAuth2PasswordRequestForm.
-    Returns a JWT token upon successful authentication.
-    """
-    print("formdata",form_data.username)
-    account_exist = login_check_user(str(form_data.username), str(form_data.password))
+# # Authentication endpoints
+# @app.post("/login", tags=["Authentication"])
+# async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+#     """
+#     User login with OAuth2PasswordRequestForm.
+#     Returns a JWT token upon successful authentication.
+#     """
+#     print("formdata",form_data.username)
+#     account_exist = login_check_user(str(form_data.username), str(form_data.password))
     
-    if account_exist == 3:
-        token = create_access_token(data={"sub": form_data.username})
-        return {"access_token": token, "token_type": "bearer"}
-    elif account_exist == 0:
-        raise HTTPException(status_code=404, detail="User not found")
-    elif account_exist == 1:
-        raise HTTPException(status_code=403, detail="Incorrect password")
-    raise HTTPException(status_code=500, detail="Authentication failed")
+#     if account_exist == 3:
+#         token = create_access_token(data={"sub": form_data.username})
+#         return {"access_token": token, "token_type": "bearer"}
+#     elif account_exist == 0:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     elif account_exist == 1:
+#         raise HTTPException(status_code=403, detail="Incorrect password")
+#     raise HTTPException(status_code=500, detail="Authentication failed")
 
 
-@app.post("/register", tags=["Authentication"])
-async def register(request: RegisterRequest):
-    """
-    Register a new user.process_cv
-    """
-    if register_check_user(request.username) == 1:
-        raise HTTPException(status_code=400, detail="User already exists")
-    if create_user_data(request.username, request.password):
-        return {"message": "User registered successfully"}
-    raise HTTPException(status_code=500, detail="Registration failed")
+# @app.post("/register", tags=["Authentication"])
+# async def register(request: RegisterRequest):
+#     """
+#     Register a new user.process_cv
+#     """
+#     if register_check_user(request.username) == 1:
+#         raise HTTPException(status_code=400, detail="User already exists")
+#     if create_user_data(request.username, request.password):
+#         return {"message": "User registered successfully"}
+#     raise HTTPException(status_code=500, detail="Registration failed")
 
 # # Get values from environment variables
 # firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH')
@@ -169,7 +169,7 @@ async def register(request: RegisterRequest):
 #     return {"cv_id": cv_id, "public_url": public_url_path}
 @app.post("/upload/cv/")
 
-async def upload_cv(file: UploadFile = File(...), username: str = Depends(validate_token)):
+async def upload_cv(file: UploadFile = File(...)):
     if file.content_type not in ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
         raise HTTPException(status_code=400, detail="Invalid file type. Only PDF and DOC files are allowed.")
 
@@ -312,36 +312,20 @@ async def compare_cv_jd(project_name: str = Body(...), cv_id: str = Body(...), j
     return project_data
 
 
+@app.get("/get/project")
+async def get_project():
+    all_project_files = get_all_project_files()
+    return all_project_files
+
 @app.get("/get/cv")
-async def get_cv(username: str = Depends(validate_token)):
-    """Get CV details."""
-    print(f"Authenticated user: {username}")  # Log authenticated user
-    # Replace this with actual logic to fetch CVs for the user
-    _ = get_user_cv_details(username)
-    return {"message": f"Returning CVs for user {username}"}
+async def get_cv():
+    all_project_files = get_all_cv_files()
+    return all_project_files
 
 @app.get("/get/jd")
-async def get_cv(username: str = Depends(validate_token)):
-    """Get CV details."""
-    print(f"Authenticated user: {username}")  # Log authenticated user
-    # Replace this with actual logic to fetch CVs for the user
-    _ = get_user_jd_details(username)
-    return {"message": f"Returning JDs for user {username}"}
-
-@app.get("/get/project")
-async def get_cv(username: str = Depends(validate_token)):
-    """Get CV details."""
-    print(f"Authenticated user: {username}")  # Log authenticated user
-    # Replace this with actual logic to fetch CVs for the user
-    _ = get_user_project_details(username)
-    return {"message": f"Returning Projects for user {username}"}
-
-
-
-# @app.get("/get/jd")
-# async def get_jd():
-#     all_project_files = get_all_jd_files()
-#     return all_project_files
+async def get_jd():
+    all_project_files = get_all_jd_files()
+    return all_project_files
 
 @app.delete("/get/delete_project")
 async def delete_project(project_id: str):
