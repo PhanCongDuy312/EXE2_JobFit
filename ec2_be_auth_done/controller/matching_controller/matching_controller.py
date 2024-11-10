@@ -192,7 +192,7 @@ def calculate_cv_jd_ratio(matching_keyword_dict, cv_dict, jd_dict):
     
     
     if float(ratio) < 50:
-        random_float = random.uniform(10, 40)
+        random_float = random.uniform(20, 40)
         ratio = ratio + random_float    
     
     elif float(ratio) < 80:

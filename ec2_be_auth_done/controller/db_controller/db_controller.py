@@ -76,6 +76,9 @@ def create_user_data(username: str, password: str):
             'username': username,
             'password': password
         })
+        user_collection.document('CV_ids').set({'ids': ''})
+        user_collection.document('JD_ids').set({'ids': ''})
+        user_collection.document('Project_ids').set({'ids': ''})
         
         print(f"Collection '{username}' and document 'account_data' created with username and password fields.")
         return True
@@ -127,6 +130,46 @@ async def check_cv_types(file: UploadFile):
 
 
 
+def upload_to_user_db(collection_name: str, document_name: str, new_cv_id: str):
+    try:
+        # Reference to the document in the specified collection
+        doc_ref = firestore_db.collection(collection_name).document(document_name)
+        doc = doc_ref.get()
+
+        if doc.exists:
+            # Get existing IDs
+            existing_ids = doc.get('ids')
+            if existing_ids:
+                # Convert string of IDs to a list
+                existing_ids_list = existing_ids.split(', ')
+
+                # Append the new ID if it's not already in the list
+                if new_cv_id not in existing_ids_list:
+                    existing_ids_list.append(new_cv_id)
+            else:
+                # If 'ids' field is empty, start with the new ID
+                existing_ids_list = [new_cv_id]
+
+            # Convert the list back to a comma-separated string
+            updated_ids_str = ', '.join(existing_ids_list)
+
+            # Update the document with the new IDs
+            doc_ref.update({'ids': updated_ids_str})
+
+            # Retrieve and return the updated document
+            updated_doc = doc_ref.get()
+            return updated_doc.to_dict()
+
+        else:
+            print(f"Document '{document_name}' does not exist in collection '{collection_name}'.")
+            return {}
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return {}
+
+
+
 def upload_result_to_firebase(project_name: str, cv_id: int, jd_id: int, score: float,matching_keyword_dict:dict, total_keyword:str):
 
     project_id = str(uuid.uuid4())
@@ -145,7 +188,7 @@ def upload_result_to_firebase(project_name: str, cv_id: int, jd_id: int, score: 
     # Save metadata to Realtime Database
     # realtime_db_ref.child(f'Project_db_url/{project_id}').set(project_data)
 
-    return project_data
+    return project_data, project_id
 
 
 
@@ -229,11 +272,118 @@ def delete_jd_with_id(jd_id: str):
     
     
     
+# def get_user_cv_details(username: str):
+#     try:
+#         # Access the 'CV_ids' document in the collection named after the username
+#         cv_ids_doc_ref = firestore_db.collection(username).document('CV_ids')
+#         cv_ids_doc = cv_ids_doc_ref.get()
+
+#         # Check if the document exists
+#         if cv_ids_doc.exists:
+#             # Get the 'ids' field and split it into individual IDs
+#             ids_str = cv_ids_doc.get('ids')
+#             if ids_str:
+#                 cv_ids = ids_str.split(', ')
+                
+#                 # Loop through each ID to retrieve CV details from 'CV_database'
+#                 for cv_id in cv_ids:
+#                     cv_doc_ref = firestore_db.collection('CV_database').document(cv_id)
+#                     cv_doc = cv_doc_ref.get()
+
+#                     # Check if the document exists and print details
+#                     if cv_doc.exists:
+#                         print(f"Details for CV ID {cv_id}:")
+#                         print(cv_doc.to_dict())
+#                     else:
+#                         print(f"No document found for CV ID {cv_id}")
+#             else:
+#                 print("No IDs found in the 'ids' field.")
+#         else:
+#             print(f"Document 'CV_ids' does not exist in '{username}' collection.")
+
+#     except Exception as e:
+#         print("An error occurred:", e)
+        
+        
+# def get_user_jd_details(username: str):
+#     try:
+#         # Access the 'CV_ids' document in the collection named after the username
+#         jd_ids_doc_ref = firestore_db.collection(username).document('JD_ids')
+#         jd_ids_doc = jd_ids_doc_ref.get()
+
+#         # Check if the document exists
+#         if jd_ids_doc.exists:
+#             # Get the 'ids' field and split it into individual IDs
+#             ids_str = jd_ids_doc.get('ids')
+#             if ids_str:
+#                 jd_ids = ids_str.split(', ')
+                
+#                 # Loop through each ID to retrieve jd details from 'jd_database'
+#                 for jd_id in jd_ids:
+#                     jd_doc_ref = firestore_db.collection('JD_database').document(jd_id)
+#                     jd_doc = jd_doc_ref.get()
+
+#                     # Check if the document exists and print details
+#                     if jd_doc.exists:
+#                         print(f"Details for JD ID {jd_id}:")
+#                         print(jd_doc.to_dict())
+#                     else:
+#                         print(f"No document found for JD ID {jd_id}")
+#             else:
+#                 print("No IDs found in the 'ids' field.")
+#         else:
+#             print(f"Document 'jd_ids' does not exist in '{username}' collection.")
+
+#     except Exception as e:
+#         print("An error occurred:", e)
+        
+        
+        
+# def get_user_project_details(username: str):
+#     try:
+#         # Access the 'CV_ids' document in the collection named after the username
+#         project_ids_doc_ref = firestore_db.collection(username).document('Project_ids')
+#         project_ids_doc = project_ids_doc_ref.get()
+
+#         # Check if the document exists
+#         if project_ids_doc.exists:
+#             # Get the 'ids' field and split it into individual IDs
+#             ids_str = project_ids_doc.get('ids')
+#             if ids_str:
+#                 project_ids = ids_str.split(', ')
+                
+#                 # Loop through each ID to retrieve project details from 'project_database'
+#                 for project_id in project_ids:
+#                     project_doc_ref = firestore_db.collection('Project_database').document(project_id)
+#                     project_doc = project_doc_ref.get()
+
+#                     # Check if the document exists and print details
+#                     if project_doc.exists:
+#                         print(f"Details for project ID {project_id}:")
+#                         print(project_doc.to_dict())
+#                     else:
+#                         print(f"No document found for project ID {project_id}")
+#             else:
+#                 print("No IDs found in the 'ids' field.")
+#         else:
+#             print(f"Document 'project_ids' does not exist in '{username}' collection.")
+
+#     except Exception as e:
+#         print("An error occurred:", e)
+
+
+
+
+#################################################################################################################3
+
 def get_user_cv_details(username: str):
     try:
         # Access the 'CV_ids' document in the collection named after the username
         cv_ids_doc_ref = firestore_db.collection(username).document('CV_ids')
         cv_ids_doc = cv_ids_doc_ref.get()
+
+        # List to store all retrieved CV details
+        user_cv_details = []
 
         # Check if the document exists
         if cv_ids_doc.exists:
@@ -241,16 +391,15 @@ def get_user_cv_details(username: str):
             ids_str = cv_ids_doc.get('ids')
             if ids_str:
                 cv_ids = ids_str.split(', ')
-                
+
                 # Loop through each ID to retrieve CV details from 'CV_database'
                 for cv_id in cv_ids:
                     cv_doc_ref = firestore_db.collection('CV_database').document(cv_id)
                     cv_doc = cv_doc_ref.get()
 
-                    # Check if the document exists and print details
+                    # Check if the document exists and add details to the list
                     if cv_doc.exists:
-                        print(f"Details for CV ID {cv_id}:")
-                        print(cv_doc.to_dict())
+                        user_cv_details.append(cv_doc.to_dict())
                     else:
                         print(f"No document found for CV ID {cv_id}")
             else:
@@ -258,15 +407,22 @@ def get_user_cv_details(username: str):
         else:
             print(f"Document 'CV_ids' does not exist in '{username}' collection.")
 
+        return user_cv_details
+
     except Exception as e:
         print("An error occurred:", e)
-        
-        
+        return []
+    
+    
+    
 def get_user_jd_details(username: str):
     try:
-        # Access the 'CV_ids' document in the collection named after the username
+        # Access the 'jd_ids' document in the collection named after the username
         jd_ids_doc_ref = firestore_db.collection(username).document('JD_ids')
         jd_ids_doc = jd_ids_doc_ref.get()
+
+        # List to store all retrieved jd details
+        user_jd_details = []
 
         # Check if the document exists
         if jd_ids_doc.exists:
@@ -274,33 +430,38 @@ def get_user_jd_details(username: str):
             ids_str = jd_ids_doc.get('ids')
             if ids_str:
                 jd_ids = ids_str.split(', ')
-                
+
                 # Loop through each ID to retrieve jd details from 'jd_database'
                 for jd_id in jd_ids:
                     jd_doc_ref = firestore_db.collection('JD_database').document(jd_id)
                     jd_doc = jd_doc_ref.get()
 
-                    # Check if the document exists and print details
+                    # Check if the document exists and add details to the list
                     if jd_doc.exists:
-                        print(f"Details for JD ID {jd_id}:")
-                        print(jd_doc.to_dict())
+                        user_jd_details.append(jd_doc.to_dict())
                     else:
-                        print(f"No document found for JD ID {jd_id}")
+                        print(f"No document found for jd ID {jd_id}")
             else:
                 print("No IDs found in the 'ids' field.")
         else:
             print(f"Document 'jd_ids' does not exist in '{username}' collection.")
 
+        return user_jd_details
+
     except Exception as e:
         print("An error occurred:", e)
-        
-        
-        
+        return []
+    
+    
+
 def get_user_project_details(username: str):
     try:
-        # Access the 'CV_ids' document in the collection named after the username
+        # Access the 'project_ids' document in the collection named after the username
         project_ids_doc_ref = firestore_db.collection(username).document('Project_ids')
         project_ids_doc = project_ids_doc_ref.get()
+
+        # List to store all retrieved project details
+        user_project_details = []
 
         # Check if the document exists
         if project_ids_doc.exists:
@@ -308,16 +469,15 @@ def get_user_project_details(username: str):
             ids_str = project_ids_doc.get('ids')
             if ids_str:
                 project_ids = ids_str.split(', ')
-                
+
                 # Loop through each ID to retrieve project details from 'project_database'
                 for project_id in project_ids:
                     project_doc_ref = firestore_db.collection('Project_database').document(project_id)
                     project_doc = project_doc_ref.get()
 
-                    # Check if the document exists and print details
+                    # Check if the document exists and add details to the list
                     if project_doc.exists:
-                        print(f"Details for project ID {project_id}:")
-                        print(project_doc.to_dict())
+                        user_project_details.append(project_doc.to_dict())
                     else:
                         print(f"No document found for project ID {project_id}")
             else:
@@ -325,5 +485,8 @@ def get_user_project_details(username: str):
         else:
             print(f"Document 'project_ids' does not exist in '{username}' collection.")
 
+        return user_project_details
+
     except Exception as e:
         print("An error occurred:", e)
+        return []
