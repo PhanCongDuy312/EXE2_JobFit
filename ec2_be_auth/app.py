@@ -138,7 +138,7 @@ async def upload_cv(file: UploadFile = File(...), username: str = Depends(valida
     filename, cv_id, public_url_path = await upload_file_to_firebase(file)
     
     
-    _ = await upload_to_user_db(collection_name=username, document_name="CV_ids", new_cv_id=cv_id)
+    _ =  upload_to_user_db(collection_name=username, document_name="CV_ids", new_cv_id=cv_id)
     
     # Save metadata to Firestore
     cv_data = {
@@ -172,7 +172,7 @@ async def upload_jd(file: UploadFile = File(...), username: str = Depends(valida
     }
     
     firestore_db.collection('JD_database').document(jd_id).set(jd_data)
-    _ = await upload_to_user_db(collection_name=username, document_name="JD_ids", new_cv_id=cv_id)
+    _ =  upload_to_user_db(collection_name=username, document_name="JD_ids", new_cv_id=jd_id)
 
     # Save metadata to Realtime Database
     realtime_db_ref.child(f'JD_db_url/{jd_id}').set(jd_data)
@@ -271,7 +271,8 @@ async def compare_cv_jd(project_name: str = Body(...), cv_id: str = Body(...), j
     print("total keywords: ",total_keywords)
     best_score = tanh_functions(matching_keyword=matching_keywords, cv_data=cv_response, jd_data=jd_response)
     
-    project_data = upload_result_to_firebase(project_name=project_name, cv_id=cv_id, jd_id=jd_id, score=float(best_score), matching_keyword_dict=matching_keywords, total_keyword=total_keywords)
+    project_data, project_id = upload_result_to_firebase(project_name=project_name, cv_id=cv_id, jd_id=jd_id, score=float(best_score), matching_keyword_dict=matching_keywords, total_keyword=total_keywords)
+    _ = upload_to_user_db(collection_name=username, document_name="Project_ids", new_cv_id=project_id)
     
     return project_data
 
@@ -282,7 +283,7 @@ async def get_cv(username: str = Depends(validate_token)):
     print(f"Authenticated user: {username}")  # Log authenticated user
     # Replace this with actual logic to fetch CVs for the user
     cvs_data = get_user_cv_details(username)
-    return {"message": f"Returning CVs for user {username}","Data":cvs_data}
+    return cvs_data
 
 @app.get("/get/jd")
 async def get_cv(username: str = Depends(validate_token)):
@@ -290,7 +291,7 @@ async def get_cv(username: str = Depends(validate_token)):
     print(f"Authenticated user: {username}")  # Log authenticated user
     # Replace this with actual logic to fetch CVs for the user
     jds_data = get_user_jd_details(username)
-    return {"message": f"Returning JDs for user {username}","Data":jds_data}
+    return jds_data
 
 @app.get("/get/project")
 async def get_cv(username: str = Depends(validate_token)):
@@ -298,7 +299,7 @@ async def get_cv(username: str = Depends(validate_token)):
     print(f"Authenticated user: {username}")  # Log authenticated user
     # Replace this with actual logic to fetch CVs for the user
     project_data = get_user_project_details(username)
-    return {"message": f"Returning Projects for user {username}", "Data":project_data}
+    return project_data
 
 
 

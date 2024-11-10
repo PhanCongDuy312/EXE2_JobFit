@@ -283,7 +283,7 @@ async def get_cv(username: str = Depends(validate_token)):
     print(f"Authenticated user: {username}")  # Log authenticated user
     # Replace this with actual logic to fetch CVs for the user
     cvs_data = get_user_cv_details(username)
-    return {cvs_data}
+    return cvs_data
 
 @app.get("/get/jd")
 async def get_cv(username: str = Depends(validate_token)):
@@ -291,7 +291,7 @@ async def get_cv(username: str = Depends(validate_token)):
     print(f"Authenticated user: {username}")  # Log authenticated user
     # Replace this with actual logic to fetch CVs for the user
     jds_data = get_user_jd_details(username)
-    return {jds_data}
+    return jds_data
 
 @app.get("/get/project")
 async def get_cv(username: str = Depends(validate_token)):
@@ -299,7 +299,7 @@ async def get_cv(username: str = Depends(validate_token)):
     print(f"Authenticated user: {username}")  # Log authenticated user
     # Replace this with actual logic to fetch CVs for the user
     project_data = get_user_project_details(username)
-    return {project_data}
+    return project_data
 
 
 

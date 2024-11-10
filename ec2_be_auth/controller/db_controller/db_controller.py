@@ -188,7 +188,7 @@ def upload_result_to_firebase(project_name: str, cv_id: int, jd_id: int, score: 
     # Save metadata to Realtime Database
     # realtime_db_ref.child(f'Project_db_url/{project_id}').set(project_data)
 
-    return project_data
+    return project_data, project_id
 
 
 
@@ -418,7 +418,7 @@ def get_user_cv_details(username: str):
 def get_user_jd_details(username: str):
     try:
         # Access the 'jd_ids' document in the collection named after the username
-        jd_ids_doc_ref = firestore_db.collection(username).document('jd_ids')
+        jd_ids_doc_ref = firestore_db.collection(username).document('JD_ids')
         jd_ids_doc = jd_ids_doc_ref.get()
 
         # List to store all retrieved jd details
@@ -433,7 +433,7 @@ def get_user_jd_details(username: str):
 
                 # Loop through each ID to retrieve jd details from 'jd_database'
                 for jd_id in jd_ids:
-                    jd_doc_ref = firestore_db.collection('jd_database').document(jd_id)
+                    jd_doc_ref = firestore_db.collection('JD_database').document(jd_id)
                     jd_doc = jd_doc_ref.get()
 
                     # Check if the document exists and add details to the list
@@ -457,7 +457,7 @@ def get_user_jd_details(username: str):
 def get_user_project_details(username: str):
     try:
         # Access the 'project_ids' document in the collection named after the username
-        project_ids_doc_ref = firestore_db.collection(username).document('project_ids')
+        project_ids_doc_ref = firestore_db.collection(username).document('Project_ids')
         project_ids_doc = project_ids_doc_ref.get()
 
         # List to store all retrieved project details
@@ -472,7 +472,7 @@ def get_user_project_details(username: str):
 
                 # Loop through each ID to retrieve project details from 'project_database'
                 for project_id in project_ids:
-                    project_doc_ref = firestore_db.collection('project_database').document(project_id)
+                    project_doc_ref = firestore_db.collection('Project_database').document(project_id)
                     project_doc = project_doc_ref.get()
 
                     # Check if the document exists and add details to the list
